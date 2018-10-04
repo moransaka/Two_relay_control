@@ -22,7 +22,7 @@ void Tablet();
 void startClock();
 void initLCD();
 void relay(short i);
-void elBoiler5_7();
+bool elBoiler5_7();
 
 void setup()
 {
@@ -39,11 +39,11 @@ void setup()
 
 void loop()
 {
-  disabledAll();                           // Отключить все кроме кнопки
-  if (digitalRead(pin10) == HIGH){         // Запуск при удерживании кнопки
-    relay(times);                          // Запускаем реле
+  if (elBoiler5_7() == false) disabledAll(); // Отключить все кроме кнопки
+  if (digitalRead(pin10) == HIGH){           // Запуск при удерживании кнопки
+    relay(times);                            // Запускаем реле
   }
-  startClock();                            //Запускаем часы
+  startClock();                              //Запускаем часы
 }
 
 void startClock()
@@ -133,10 +133,12 @@ void elBoiler5_7()
     digitalWrite(relay11, HIGH);
     digitalWrite(relay21, HIGH);
     index = 1;
+    return true;
   }
   else{
     digitalWrite(relay11, LOW);
     digitalWrite(relay21, LOW);
     index = 0;
+    return false;
   }
 }
