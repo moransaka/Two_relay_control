@@ -14,7 +14,7 @@ const short relay21 = 7;                   // Электро котёл
 const short pin10 = 10;
 
 short times;                               // Переменные которые хранят время
-short index;
+short index = 0;
 
 void Display(bool i);
 void disabledAll();
@@ -22,7 +22,7 @@ void Tablet();
 void startClock();
 void initLCD();
 void relay(short i);
-bool elBoiler5_7();
+bool elBoiler5_7(short i);
 
 void setup()
 {
@@ -30,7 +30,7 @@ void setup()
   initLCD();                               // Инициализация Led 
   delay(300);
   time.begin();                            //Инициализация часов реального времени(запуск)
-  //time.settime(0, 41, 16, 30, 9, 18, 7);   //Установка времени
+  //time.settime(0, 41, 16, 30, 9, 18, 7); //Установка времени
   pinMode(pin10, INPUT);
   pinMode(relay11, OUTPUT);
   pinMode(relay12, OUTPUT);
@@ -39,11 +39,11 @@ void setup()
 
 void loop()
 {
-  if (elBoiler5_7() == false) disabledAll(); // Отключить все кроме кнопки
-  if (digitalRead(pin10) == HIGH){           // Запуск при удерживании кнопки
-    relay(times);                            // Запускаем реле
+  if (elBoiler5_7(times) == false) disabledAll(); // Отключить все кроме кнопки
+  if (digitalRead(pin10) == HIGH){         // Запуск при удерживании кнопки
+    relay(times);                          // Запускаем реле
   }
-  startClock();                              //Запускаем часы
+  startClock();                            //Запускаем часы
 }
 
 void startClock()
@@ -75,8 +75,8 @@ void disabledAll()
   digitalWrite(relay12, HIGH);
 }
 
-void relay(short i)
-{                      // Управление реле
+void relay(short i)                       // Управление реле
+{                      
   if (i >= 7 && i <= 23){
     digitalWrite(relay12, HIGH);  
     digitalWrite(relay11, HIGH);
@@ -101,7 +101,7 @@ void relay(short i)
 }
 
 void Tablet()
-{                            // Если что-то сломаеться)))
+{                                         // Если что-то сломаеться)))
   digitalWrite(relay12, HIGH);
   //Serial.print("yes");
   delay(500);
@@ -110,35 +110,27 @@ void Tablet()
   delay(500);
 }
 
-void Display(short i)        // Вывод на экран
+void Display(short i)                     // Вывод на экран
 {                      
-  
+  lcd.setCursor(0,0);
   switch (i)
   {
     case 0:
-      lcd.setCursor(0,0);
       lcd.print("DONT PANIC!");
     case 1:
-      lcd.setCursor(0,0);
       lcd.print("EL Boiler and Pomp");  
     case 2:
-      lcd.setCursor(0,0);
       lcd.print("GAS Boiler and Pomp");
   }
 }
 
-void elBoiler5_7()
+bool elBoiler5_7(short i)                 // Включить котел рано утром
 {
+  index = 0;
   if (i >= 5 && i <= 7){
     digitalWrite(relay11, HIGH);
     digitalWrite(relay21, HIGH);
     index = 1;
     return true;
-  }
-  else{
-    digitalWrite(relay11, LOW);
-    digitalWrite(relay21, LOW);
-    index = 0;
-    return false;
   }
 }
