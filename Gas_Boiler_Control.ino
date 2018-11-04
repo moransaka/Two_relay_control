@@ -11,40 +11,40 @@ const short relay11 = 2;                   // Помпа
 const short relay12 = 4;                   // Газовый котёл
 const short relay21 = 7;                   // Электро котёл
 //const short relay22 = ;
-const short pin10 = 10;
+const short PIN10 = 10;
 
-short times;                               // Переменные которые хранят время
+int times;                                 // Переменные которые хранят время
+
+bool pin10 = false;
 short index = 0;
 short index1 = 0;
 
 void Display(short i);
-void disabledAll();
+void disablell();
 void Tablet();
 void startClock();
 void initLCD();
-void relay(short i);
+void relay(int i);
 
 void setup()
 {
   Serial.begin(9600);
   initLCD();                               // Инициализация Led 
   delay(300);
-  time.begin();                            //Инициализация часов реального времени(запуск)
-  //time.settime(0, 41, 16, 30, 9, 18, 7); //Установка времени
-  pinMode(pin10, INPUT);
+  time.begin();                            // Инициализация часов реального времени(запуск)
+  //time.settime(0, 0, 18, 30, 9, 18, 7); // Установка времени
+  pinMode(PIN10, INPUT);
   pinMode(relay11, OUTPUT);
   pinMode(relay12, OUTPUT);
   pinMode(relay21, OUTPUT);
-  disabledAll();
+  disableAll();
 }
 
 void loop()
 {
-//  if (digitalRead(pin10) == HIGH){         // Запуск при удерживании кнопки
-//    relay(times);                          // Запускаем реле
-//  }
-  relay(times);
-  startClock();                              //Запускаем часы
+  pin10 = digitalRead(PIN10);
+  relay(times);                              // Запускаем реле
+  startClock();                              // Запускаем часы
 }
 
 void startClock()
@@ -53,51 +53,46 @@ void startClock()
   {
     lcd.setCursor(0, 1);                   // Переводим курсор на первую строку второго ряда
     lcd.print(time.gettime("H:i:s"));      // Получаем и выводим время на экран
-    times = time.seconds;                  // Присваиваем время
-    Serial.print(index);
+    times = (time.Hours * 3600) + (time.minutes * 60) + time.seconds;
+    //Serial.print(index);
     if (index1 != index){
       Display(index);
       index1 = index;
     }
-    //Serial.print(times);                 // Тестирование время 
-    delay(500);
   }
-    
 }
 
 void initLCD()
 {
   lcd.init();                             // Инициализация дисплея  
   lcd.backlight();                        // Подключение подсветки
-  lcd.setCursor(0, 0);                    // Установка курсора в начало первой строки
-  lcd.print("DONT PANIC!");               // Набор текста на первой строке
 }
 
-void disabledAll()
+void disableAll()
 {
   digitalWrite(relay21, HIGH);            // Отключить все пины
   digitalWrite(relay11, HIGH);
   digitalWrite(relay12, HIGH);
 }
 
-void relay(short i)                       // Управление реле
-{
-   disabledAll();                      
-  if (i >= 1 && i <= 10){
-    digitalWrite(relay11, LOW);
-    digitalWrite(relay21, LOW);
-    index = 3;
-  }
-      if (i >= 10 && i <= 20){                 // Помпа + Газ
-      digitalWrite(relay12, LOW);  
-      digitalWrite(relay11, LOW);
-      index = 2;
-    }
-      if (i >= 20 && i <= 30){                 // Помпа + Електро
-        digitalWrite(relay11, LOW);
-        digitalWrite(relay21, LOW);
-        index = 1;
-      }
+void relay(int i)                       // Управление реле
+{     
+   disableAll();
+   if (i >= 18000 && i <= 25199){                 // Ранее утро
+     digitalWrite(relay11, LOW);
+     digitalWrite(relay21, LOW);
+     index = 3;           
+   }     
+   if (i >= 25200 && i <= 75599 && pin10 == true){            // Помпа + Газ
+     digitalWrite(relay12, LOW);  
+     digitalWrite(relay11, LOW);
+     index = 2;
+   }
+   if (i >= 75600 || i <= 17999 && pin10 == true){            // Помпа + Електро
+     digitalWrite(relay11, LOW);
+     digitalWrite(relay21, LOW);
+     index = 1;
+   }
 }
 
 void Tablet()
@@ -115,7 +110,6 @@ void Display(short i)                     // Вывод на экран
   lcd.setCursor(0,0);
   lcd.print("           ");
   lcd.setCursor(0,0);
-  if (i == 0) lcd.print("Dont Panic!");
   if (i == 1) lcd.print("EL/Pomp");
   if (i == 2) lcd.print("GAS/Pomp");
   if (i == 3) lcd.print("Morning");
