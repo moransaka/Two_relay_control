@@ -4,6 +4,7 @@
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27, 16, 12);
 #include <iarduino_RTC.h> 
+
 iarduino_RTC time(RTC_DS3231);
 
 // Создание пинов
@@ -28,11 +29,11 @@ void relay(int i);
 
 void setup()
 {
-  Serial.begin(9600);
+  // Serial.begin(9600);
   initLCD();                               // Инициализация Led 
   delay(300);
   time.begin();                            // Инициализация часов реального времени(запуск)
-  //time.settime(0, 0, 18, 30, 9, 18, 7); // Установка времени
+  //time.settime(0, 59, 14, 4, 11, 18, 7);  // Установка времени
   pinMode(PIN10, INPUT);
   pinMode(relay11, OUTPUT);
   pinMode(relay12, OUTPUT);
@@ -53,8 +54,7 @@ void startClock()
   {
     lcd.setCursor(0, 1);                   // Переводим курсор на первую строку второго ряда
     lcd.print(time.gettime("H:i:s"));      // Получаем и выводим время на экран
-    times = (time.Hours * 3600) + (time.minutes * 60) + time.seconds;
-    //Serial.print(index);
+    times = ((time.Hours * 60) + time.minutes);
     if (index1 != index){
       Display(index);
       index1 = index;
@@ -75,20 +75,23 @@ void disableAll()
   digitalWrite(relay12, HIGH);
 }
 
-void relay(int i)                       // Управление реле
+void relay(int i)                         // Управление реле
 {     
    disableAll();
-   if (i >= 18000 && i <= 25199){                 // Ранее утро
+   if (( pin10 != true)  && (i <= (5*60) && i >= (7*60))){            
+     index = 0;                                                    // отключено
+   }
+   if (i >= (5*60) && i <= (7*60)){                                // Ранее утро
      digitalWrite(relay11, LOW);
      digitalWrite(relay21, LOW);
      index = 3;           
    }     
-   if (i >= 25200 && i <= 75599 && pin10 == true){            // Помпа + Газ
+   if ((i >= (7*60) && i <= (21*60)) && pin10 == true){            // Помпа + Газ
      digitalWrite(relay12, LOW);  
      digitalWrite(relay11, LOW);
      index = 2;
    }
-   if (i >= 75600 || i <= 17999 && pin10 == true){            // Помпа + Електро
+   if ((i >= (21*60) || i <= (5*60)) && pin10 == true){            // Помпа + Електро
      digitalWrite(relay11, LOW);
      digitalWrite(relay21, LOW);
      index = 1;
@@ -113,4 +116,5 @@ void Display(short i)                     // Вывод на экран
   if (i == 1) lcd.print("EL/Pomp");
   if (i == 2) lcd.print("GAS/Pomp");
   if (i == 3) lcd.print("Morning");
+  if (i == 0) lcd.print("ALL OFF"); 
 }
